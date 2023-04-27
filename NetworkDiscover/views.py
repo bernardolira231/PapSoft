@@ -29,7 +29,6 @@ def start(request):
                 'password': ssh_password
             }
             net_connect = ConnectHandler(**device)
-
             output = net_connect.send_command('show inventory')
 
             for line in output.splitlines():
@@ -60,6 +59,9 @@ def start(request):
             for line in output.splitlines():
                 if 'IP address: ' in line:
                     new_ip_address = line.split('IP address: ')[1]
+
+            print(f"Ip vecino: {new_ip_address}")
+            net_connect.disconnect()
 
             return redirect('/show_device', net_connect)
         except:
