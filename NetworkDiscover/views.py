@@ -19,6 +19,7 @@ def start(request):
         })
     else:
         try:
+            l_device = []
             ssh_user = request.POST['device_username']
             ssh_password = request.POST['device_password']
             device_ip = request.POST['device_ip']
@@ -28,40 +29,80 @@ def start(request):
                 'username': ssh_user,
                 'password': ssh_password
             }
-            net_connect = ConnectHandler(**device)
-            output = net_connect.send_command('show inventory')
+            device_list = []
 
-            for line in output.splitlines():
-                if 'Chassis' in line:
-                    if 'router' in line.lower():
-                        sor = 'router'
-                    elif 'switch' in line.lower():
-                        sor = 'switch'
-                    else:
-                        sor = 'desconocido'
-                    break
-            else:
-                sor = 'desconocido'
+            known_ip = []
 
-            output = net_connect.send_command('show run | i hostname')
-            hostname = output.split()[1]
+            known_ip.append(device_ip)
 
-            device = Device.objects.create(
-                device_username=request.POST['device_username'],
-                device_password=request.POST['device_password'],
-                device_ip=request.POST['device_ip'],
-                device_type=sor,
-                device_name=hostname,
-            )
-            device.save()
+            for i in known_ip:
+                device['host'] = i
+                ip_disp = []
+                add_neighbors = []
 
-            output = net_connect.send_command('show cdp neighbors detail')
-            for line in output.splitlines():
-                if 'IP address: ' in line:
-                    new_ip_address = line.split('IP address: ')[1]
+                net_connect = ConnectHandler(**device)
 
-            print(f"Ip vecino: {new_ip_address}")
-            net_connect.disconnect()
+                output = net_connect.send_command(
+                    'show cdp neighbors detail', use_textfsm=True)
+                output1 = net_connect.send_command(
+                    'show ip interface brief', use_textfsm=True)
+                output2 = net_connect.send_command(
+                    'show running-config | include hostname')
+                output3 = net_connect.send_command(
+                    'show ip interface brief', use_textfsm=True)
+                net_connect.disconnect()
+
+                hostname = ''
+                for f in range(len(output2)):
+                    while f >= 9 and f <= len(output2):
+                        hostname += output2[f]
+                        break
+
+                cont_int = (len(output3))
+
+                if cont_int >= 10:
+                    output3 = 'Switch'
+                else:
+                    output3 = 'Router'
+                deviceType = output3
+
+                for x in output:
+                    if x['managment_ip'] not in known_ip:
+                        if device_ip[0:3] in x['managment_ip']:
+                            known_ip.append(x['managment_ip'])
+
+                for each in output1:
+                    if each['status'] == 'up':
+                        ip_disp.append(each['ipaddr'])
+
+                l_device.append(
+                    {
+                        'name': hostname,
+                        'type': deviceType,
+                        'ip': i,
+                    }
+                )
+
+            new_list = []
+            names_list = []
+
+            for cada in range(len(device_list)):
+                for cado in range(len(device_list)):
+                    if cada == cado:
+                        break
+                    if device_list[cada]['name'] != device_list[cado]['name']:
+                        new_list.append(device_list[cado])
+                        names_list.append(device_list[cado]['name'])
+            return new_list
+
+            for leach in new_list:
+                device = Device.objects.create(
+                    device_username=request.POST['device_username'],
+                    device_password=request.POST['device_password'],
+                    device_ip=leach['ip'],
+                    device_name=leach['name'],
+                    device_type=leach['type']
+                )
 
             return redirect('/show_device', net_connect)
         except:
