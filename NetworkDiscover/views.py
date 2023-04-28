@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from .models import *
 from .forms import *
 from netmiko import ConnectHandler, exceptions
-# import networkx as nx
 
 # Create your views here.
 
@@ -12,11 +11,8 @@ def index(request):
 
 
 def start(request):
-    form = DeviceConnect
     if request.method == 'GET':
-        return render(request, 'start.html', {
-            'form': form
-        })
+        return render(request, 'start.html')
     else:
         try:
             l_device = []
@@ -93,24 +89,26 @@ def start(request):
                     if device_list[cada]['name'] != device_list[cado]['name']:
                         new_list.append(device_list[cado])
                         names_list.append(device_list[cado]['name'])
-            return new_list
 
             for leach in new_list:
-                device = Device.objects.create(
+                device2 = Device.objects.create(
                     device_username=request.POST['device_username'],
                     device_password=request.POST['device_password'],
                     device_ip=leach['ip'],
                     device_name=leach['name'],
                     device_type=leach['type']
                 )
+                device2.save()
 
-            return redirect('/show_device', net_connect)
-        except:
+            return redirect('/show_device', net_connect, new_list)
+        except Exception as e:
+            print(e)
             return render(request, 'start.html', {
-                'form': form,
                 'error': 'La conexion no se ha encontrado'
             })
 
 
-def show_device(request, net_connect):
-    return render(request, 'show_device.html')
+def show_device(request, net_connect, l):
+    return render(request, 'show_device.html', {
+        'l': l
+    })
