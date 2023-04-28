@@ -6,7 +6,7 @@
       <form method="POST">
         <h1>Ingresar Datos</h1>
         <h4 class="Eror_conn">{{ error }}</h4>
-        {% csrf_token %}
+        {% csrf_token %} {{ form }} {% comment %}
         <div class="mb-3">
           <input
             type="text"
@@ -41,6 +41,7 @@
             required
           />
         </div>
+        {% endcomment %}
         <button class="btn btn-primary my-2">Entrar</button>
       </form>
     </div>

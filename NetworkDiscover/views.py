@@ -12,7 +12,9 @@ def index(request):
 
 def start(request):
     if request.method == 'GET':
-        return render(request, 'start.html')
+        return render(request, 'start.html', {
+            'form': DeviceConnect
+        })
     else:
         try:
             l_device = []
@@ -63,9 +65,9 @@ def start(request):
                 deviceType = output3
 
                 for x in output:
-                    if x['managment_ip'] not in known_ip:
-                        if device_ip[0:3] in x['managment_ip']:
-                            known_ip.append(x['managment_ip'])
+                    if x['management_ip'] not in known_ip:
+                        if device_ip[0:3] in x['management_ip']:
+                            known_ip.append(x['management_ip'])
 
                 for each in output1:
                     if each['status'] == 'up':
@@ -102,13 +104,11 @@ def start(request):
 
             return redirect('/show_device', net_connect, new_list)
         except Exception as e:
-            print(e)
             return render(request, 'start.html', {
+                'form': DeviceConnect,
                 'error': 'La conexion no se ha encontrado'
             })
 
 
 def show_device(request, net_connect, l):
-    return render(request, 'show_device.html', {
-        'l': l
-    })
+    return render(request, 'show_device.html')
