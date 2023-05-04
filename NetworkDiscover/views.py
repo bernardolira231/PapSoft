@@ -11,6 +11,7 @@ def index(request):
 
 
 def start(request):
+
     if request.method == 'GET':
         return render(request, 'start.html', {
             'form': DeviceConnect
