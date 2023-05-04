@@ -111,4 +111,7 @@ def start(request):
 
 
 def show_device(request, net_connect, l):
-    return render(request, 'show_device.html')
+    disp = Device.objects.all()
+    return render(request, 'show_device.html', {
+        'device': disp
+    })
