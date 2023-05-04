@@ -10,7 +10,6 @@ class Device(models.Model):
     device_ip = models.CharField(max_length=16)
     device_username = models.CharField(max_length=100)
     device_password = models.CharField(max_length=100)
-    ip_neighbor = models.ArrayField(models.CharField(max_length=15))
 
     def __str__(self):
         return self.device_name + ' - ' + self.device_ip
