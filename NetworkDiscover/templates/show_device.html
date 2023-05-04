@@ -1,6 +1,7 @@
 {% extends 'layouts/base.html' %} {% block content %}
 
 <h1>Devices</h1>
-{% for i in device %}
-<p>{{ i }}</p>
+{% for device in devices %}
+<p>{{ device.device_name }}</p>
+<p>{{ device.device_ip }}</p>
 {% endfor %} {% endblock %}
