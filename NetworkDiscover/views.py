@@ -21,6 +21,7 @@ def start(request):
         # si la informacion entra por metodo post se realiza el proceso de conexion
         try:  # Se hace un try para poder observar si no se da ninguna excepcion
             l_device = []
+            l_neighbors = []
             # se guarda la informacion
             ssh_user = request.POST['device_username']
             # que se ingresa en el form
@@ -34,7 +35,6 @@ def start(request):
                 'password': ssh_password
             }  # Se ingresa la informacion a un diccionario para la posterior connexión
             device_list = []
-
             known_ip = []
 
             # Se agrega la ip ingresada por el usuario a la lista de ip's conocidas
@@ -60,7 +60,7 @@ def start(request):
                     'show ip interface brief', use_textfsm=True)
                 net_connect.disconnect()  # Se desconecta
 
-                hostname = ''
+                hostname = ''  # for para recuperar el hostname del dispositivo
                 for f in range(len(output2)):
                     while f >= 9 and f <= len(output2):
                         hostname += output2[f]
@@ -68,6 +68,7 @@ def start(request):
 
                 cont_int = (len(output3))
 
+                # if para comprobar si es un switch o un router
                 if cont_int >= 10:
                     output3 = 'Switch'
                 else:
@@ -78,6 +79,14 @@ def start(request):
                     if x['management_ip'] not in known_ip:
                         if device_ip[0:3] in x['management_ip']:
                             known_ip.append(x['management_ip'])
+
+                    l_neighbors.append(
+                        {
+                            'name': x['destination_host'][0:2],
+                            'ip': x['management_ip'],
+                            'origin': i,
+                        }
+                    )
 
                 for each in output1:
                     if each['status'] == 'up':
@@ -110,6 +119,13 @@ def start(request):
                     device_ip=leach['ip'],
                     device_name=leach['name'],
                     device_type=leach['type']
+                )
+
+            for laech in l_neighbors:
+                Neighbor.objects.create(
+                    neighbor_name=leach['name'],
+                    neighbor_ip=leach['ip'],
+                    origin=leach['origin']
                 )
 
             return redirect('/show_device')
