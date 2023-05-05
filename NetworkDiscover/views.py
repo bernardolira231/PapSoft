@@ -85,25 +85,25 @@ def start(request):
             new_list = []
             names_list = []
 
-            for cada in range(len(device_list)):
-                for cado in range(len(device_list)):
+            for cada in range(len(l_device)):
+                for cado in range(len(l_device)):
                     if cada == cado:
                         break
-                    if device_list[cada]['name'] != device_list[cado]['name']:
-                        new_list.append(device_list[cado])
-                        names_list.append(device_list[cado]['name'])
+                    if l_device[cada]['name'] != l_device[cado]['name']:
+                        if l_device[cado]['name'] not in names_list:
+                            new_list.append(l_device[cado])
+                            names_list.append(l_device[cado]['name'])
 
             for leach in new_list:
-                device2 = Device.objects.create(
+                Device.objects.create(
                     device_username=request.POST['device_username'],
                     device_password=request.POST['device_password'],
                     device_ip=leach['ip'],
                     device_name=leach['name'],
                     device_type=leach['type']
                 )
-                device2.save()
 
-            return redirect('/show_device', net_connect, new_list)
+            return redirect('/show_device')
         except Exception as e:
             return render(request, 'start.html', {
                 'form': DeviceConnect,
