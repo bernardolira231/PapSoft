@@ -13,43 +13,52 @@ def index(request):
 def start(request):
 
     if request.method == 'GET':
+        # si la informacion entra por metodo get se renderiza la pagina web con el formulario
         return render(request, 'start.html', {
             'form': DeviceConnect
         })
     else:
-        try:
+        # si la informacion entra por metodo post se realiza el proceso de conexion
+        try:  # Se hace un try para poder observar si no se da ninguna excepcion
             l_device = []
+            # se guarda la informacion
             ssh_user = request.POST['device_username']
+            # que se ingresa en el form
             ssh_password = request.POST['device_password']
+            # recuperandose por el metodo POST
             device_ip = request.POST['device_ip']
             device = {
                 'device_type': 'cisco_ios',
                 'host': device_ip,
                 'username': ssh_user,
                 'password': ssh_password
-            }
+            }  # Se ingresa la informacion a un diccionario para la posterior connexión
             device_list = []
 
             known_ip = []
 
+            # Se agrega la ip ingresada por el usuario a la lista de ip's conocidas
             known_ip.append(device_ip)
 
+            # Se inicia un ciclo con todas las ip's conocidas
             for i in known_ip:
+                # Se le ingresa la ip que esta en la iteracion actual al diccionario anterior
                 device['host'] = i
                 ip_disp = []
                 add_neighbors = []
 
+                # Se hace la connexión con ayuda de la libreria de netmiko
                 net_connect = ConnectHandler(**device)
 
                 output = net_connect.send_command(
-                    'show cdp neighbors detail', use_textfsm=True)
+                    'show cdp neighbors detail', use_textfsm=True)  # Se obtiene la información
                 output1 = net_connect.send_command(
-                    'show ip interface brief', use_textfsm=True)
+                    'show ip interface brief', use_textfsm=True)  # de los output de algunos comandos
                 output2 = net_connect.send_command(
-                    'show running-config | include hostname')
+                    'show running-config | include hostname')       # y se guarda en variable
                 output3 = net_connect.send_command(
                     'show ip interface brief', use_textfsm=True)
-                net_connect.disconnect()
+                net_connect.disconnect()  # Se desconecta
 
                 hostname = ''
                 for f in range(len(output2)):
