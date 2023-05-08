@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from .models import *
 from .forms import *
 from netmiko import ConnectHandler, exceptions
-
+import pandas as pd
+import matplotlib.pyplot as plt
+import networkx as nx
 # Create your views here.
 
 
@@ -84,7 +86,7 @@ def start(request):
                         {
                             'name': x['destination_host'][0:2],
                             'ip': x['management_ip'],
-                            'origin': i,
+                            'origin': hostname,
                         }
                     )
 
@@ -112,6 +114,8 @@ def start(request):
                             new_list.append(l_device[cado])
                             names_list.append(l_device[cado]['name'])
 
+            print(l_device)
+            print(new_list)
             for leach in new_list:
                 Device.objects.create(
                     device_username=request.POST['device_username'],
@@ -123,21 +127,44 @@ def start(request):
 
             for laech in l_neighbors:
                 Neighbor.objects.create(
-                    neighbor_name=leach['name'],
-                    neighbor_ip=leach['ip'],
-                    origin=leach['origin']
+                    neighbor_name=laech['name'],
+                    neighbor_ip=laech['ip'],
+                    origin=laech['origin']
                 )
 
+            draw_graph(l_neighbors)
             return redirect('/show_device')
         except Exception as e:
+            print(e)
             return render(request, 'start.html', {
                 'form': DeviceConnect,
                 'error': 'La conexion no se ha encontrado'
             })
 
 
-def show_device(request, net_connect, l):
-    disp = Device.objects.all()
-    return render(request, 'show_device.html', {
-        'devices': disp
-    })
+def show_device(request):
+    return render(request, 'show_device.html')
+
+
+def draw_graph(l_neighbor):
+    dis = []
+    con = []
+
+    for i in range(len(l_neighbor)):
+        dis.append(l_neighbor[i]['name'])
+        con.append(l_neighbor[i]['origin'])
+
+    df = pd.DataFrame(list(zip(dis, con)), columns=['Dispositivo', 'Vecinos'])
+    print(df)
+    plt.switch_backend('Agg')
+    # df = df['Vecinos'].replace('.final.', '-', inplace=True)
+    G = nx.from_pandas_edgelist(df, 'Dispositivo', 'Vecinos')
+    # pos = nx.spring_layout(G)
+    nx.draw_networkx(G, with_labels=True, node_size=1000, node_color="skyblue", node_shape="o", alpha=0.5, linewidths=10, font_size=15,
+                     font_color="black", font_weight="bold", width=3, edge_color="grey")
+    ax = plt.subplot()
+    ax.set_facecolor("#f2fcff")
+    ax.set_alpha(0.7)
+    plt.title(label='Topología de red', fontsize=20,
+              backgroundcolor="skyblue", color='white')
+    plt.savefig("NetworkDiscover/static/img/Graph.png", format="PNG")
