@@ -107,8 +107,10 @@ def start(request):
 
             for cada in range(len(l_device)):
                 for cado in range(len(l_device)):
+                    print(cada, cado)
                     if cada == cado:
-                        break
+                        # cambiar a break si no jala
+                        continue
                     if l_device[cada]['name'] != l_device[cado]['name']:
                         if l_device[cado]['name'] not in names_list:
                             new_list.append(l_device[cado])
@@ -116,6 +118,7 @@ def start(request):
 
             print(l_device)
             print(new_list)
+            print(names_list)
             for leach in new_list:
                 Device.objects.create(
                     device_username=request.POST['device_username'],
