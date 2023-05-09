@@ -120,13 +120,24 @@ def start(request):
             print(new_list)
             print(names_list)
             for leach in new_list:
-                Device.objects.create(
-                    device_username=request.POST['device_username'],
-                    device_password=request.POST['device_password'],
-                    device_ip=leach['ip'],
-                    device_name=leach['name'],
-                    device_type=leach['type']
-                )
+                exist = Device.objects.filter(
+                    device_name=leach['name']).exists()
+                if not exist:
+                    Device.objects.create(
+                        device_username=request.POST['device_username'],
+                        device_password=request.POST['device_password'],
+                        device_ip=leach['ip'],
+                        device_name=leach['name'],
+                        device_type=leach['type']
+                    )
+                if exist:
+                    Device.objects.filter(device_name=leach['name']).update(
+                        device_username=request.POST['device_username'],
+                        device_password=request.POST['device_password'],
+                        device_ip=leach['ip'],
+                        device_name=leach['name'],
+                        device_type=leach['type']
+                    )
 
             for laech in l_neighbors:
                 Neighbor.objects.create(
