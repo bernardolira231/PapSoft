@@ -1,18 +1,9 @@
 {% extends "layouts/base.html" %} {% block content %}
 <div class="container">
   <h1 class="mt-3">Configuración de {{ device.device_name }}</h1>
+  <h2 class="Error_conn">{{ error }}</h2>
   <form method="post">
     {% csrf_token %}
-    <div class="mb-3">
-      <label for="hostname" class="form-label">Hostname</label>
-      <input
-        type="text"
-        class="form-control"
-        id="hostname"
-        name="hostname"
-        value="{{ device.hostname }}"
-      />
-    </div>
     <div class="mb-3">
       <label for="banner_motd" class="form-label">Banner MOTD</label>
       <textarea
@@ -31,7 +22,6 @@
         class="form-control"
         id="ntp_server"
         name="ntp_server"
-        value="{{ device.ntp_server }}"
       />
     </div>
     <div class="mb-3">
@@ -41,7 +31,6 @@
         class="form-control"
         id="enable_secret"
         name="enable_secret"
-        value="{{ device.enable_secret }}"
       />
     </div>
     <button type="submit" class="btn btn-primary">Guardar cambios</button>

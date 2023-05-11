@@ -170,9 +170,37 @@ def show_device(request):
 
 def config_device(request, device_id: int):
     device = Device.objects.get(device_id=device_id)
-    return render(request, 'config_device.html', {
-        'device': device
-    })
+    if request.method == 'POST':
+        banner_motd = request.POST['banner_motd']
+        ntp_server = request.POST['ntp_server']
+        eneable_secret = request.POST['enable_secret']
+        device = {
+            'device_type': 'cisco_ios',
+            'host': device.device_ip,
+            'username': device.device_username,
+            'password': device.device_password
+        }
+        net_connect = ConnectHandler(**device)
+        try:
+            if banner_motd:
+                net_connect.send_command('banner motd ' + banner_motd)
+            if ntp_server:
+                net_connect.send_command('ntp server ' + ntp_server)
+            if eneable_secret:
+                net_connect.send_command('enable secret ' + eneable_secret)
+            net_connect.disconnect()
+            redirect('show_device/')
+        except Exception as e:
+            print(e)
+            return render(request, 'config_device.html', {
+                'device': device,
+                'error': "Error en la conexión"
+            })
+
+    else:
+        return render(request, 'config_device.html', {
+            'device': device
+        })
 
 
 def draw_graph(l_neighbor):
