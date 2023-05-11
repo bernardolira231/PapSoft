@@ -36,7 +36,6 @@ def start(request):
                 'username': ssh_user,
                 'password': ssh_password
             }  # Se ingresa la informacion a un diccionario para la posterior connexión
-            device_list = []
             known_ip = []
 
             # Se agrega la ip ingresada por el usuario a la lista de ip's conocidas
@@ -107,7 +106,7 @@ def start(request):
 
             for cada in range(len(l_device)):
                 for cado in range(len(l_device)):
-                    print(cada, cado)
+                    # print(cada, cado)
                     if cada == cado:
                         # cambiar a break si no jala
                         continue
@@ -116,9 +115,9 @@ def start(request):
                             new_list.append(l_device[cado])
                             names_list.append(l_device[cado]['name'])
 
-            print(l_device)
-            print(new_list)
-            print(names_list)
+            # print(l_device)
+            # print(new_list)
+            # print(names_list)
             for leach in new_list:
                 exist = Device.objects.filter(
                     device_name=leach['name']).exists()
@@ -157,7 +156,23 @@ def start(request):
 
 
 def show_device(request):
-    return render(request, 'show_device.html')
+    devices = Device.objects.values_list('device_name', flat=True)
+    device_list = list(devices)
+    if request.method == 'POST':
+        device_selected = request.POST['device']
+        d_id = Device.objects.get(device_name=device_selected)
+        return redirect(f'/config_device/{d_id.device_id}')
+    else:
+        return render(request, 'show_device.html', {
+            'device_list': device_list
+        })
+
+
+def config_device(request, device_id: int):
+    device = Device.objects.get(device_id=device_id)
+    return render(request, 'config_device.html', {
+        'device': device
+    })
 
 
 def draw_graph(l_neighbor):
