@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "purgecss --css ./NetworkDiscover/static/styles/app.css --content ./*.html -o ./NetworkDiscover/static/styles/app-min.css"
   },
   "keywords": [],
   "author": "",

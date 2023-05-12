@@ -5,6 +5,7 @@ from netmiko import ConnectHandler, exceptions
 import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
+import os
 # Create your views here.
 
 
@@ -30,6 +31,9 @@ def start(request):
             ssh_password = request.POST['device_password']
             # recuperandose por el metodo POST
             device_ip = request.POST['device_ip']
+            Device.objects.all().delete()
+            # os.remove("/NetworkDiscover/static/img/Graph.png")
+            # print(device_ip)
             device = {
                 'device_type': 'cisco_ios',
                 'host': device_ip,
@@ -81,9 +85,16 @@ def start(request):
                         if device_ip[0:3] in x['management_ip']:
                             known_ip.append(x['management_ip'])
 
+                    clearly_name = ''
+                    for letter in x['destination_host']:
+                        if letter != '.':
+                            clearly_name += letter
+                        else:
+                            break
+
                     l_neighbors.append(
                         {
-                            'name': x['destination_host'][0:2],
+                            'name': clearly_name,
                             'ip': x['management_ip'],
                             'origin': hostname,
                         }
@@ -145,6 +156,7 @@ def start(request):
                     origin=laech['origin']
                 )
 
+            # print(l_neighbors)
             draw_graph(l_neighbors)
             return redirect('/show_device')
         except Exception as e:
@@ -171,25 +183,30 @@ def show_device(request):
 def config_device(request, device_id: int):
     device = Device.objects.get(device_id=device_id)
     if request.method == 'POST':
+        hostname = request.POST["hostname"]
         banner_motd = request.POST['banner_motd']
         ntp_server = request.POST['ntp_server']
         eneable_secret = request.POST['enable_secret']
-        device = {
+        devices = {
             'device_type': 'cisco_ios',
             'host': device.device_ip,
             'username': device.device_username,
             'password': device.device_password
         }
-        net_connect = ConnectHandler(**device)
         try:
+            net_connect = ConnectHandler(**devices)
+            if hostname:
+                net_connect.config_mode()
+                net_connect.send_config_set('hostname ' + hostname)
             if banner_motd:
-                net_connect.send_command('banner motd ' + banner_motd)
+                net_connect.config_mode()
+                net_connect.send_command('banner motd #' + banner_motd + '#')
             if ntp_server:
                 net_connect.send_command('ntp server ' + ntp_server)
             if eneable_secret:
                 net_connect.send_command('enable secret ' + eneable_secret)
             net_connect.disconnect()
-            redirect('show_device/')
+            return redirect('/show_device')
         except Exception as e:
             print(e)
             return render(request, 'config_device.html', {
@@ -212,7 +229,7 @@ def draw_graph(l_neighbor):
         con.append(l_neighbor[i]['origin'])
 
     df = pd.DataFrame(list(zip(dis, con)), columns=['Dispositivo', 'Vecinos'])
-    print(df)
+    # print(df)
     plt.switch_backend('Agg')
     # df = df['Vecinos'].replace('.final.', '-', inplace=True)
     G = nx.from_pandas_edgelist(df, 'Dispositivo', 'Vecinos')

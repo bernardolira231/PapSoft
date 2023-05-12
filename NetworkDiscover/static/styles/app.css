@@ -12,11 +12,31 @@
 }
 
 body {
-  background: whitesmoke;
+  background-color: #f5f5f5;
 }
 
 .Error_conn {
   color: red;
+}
+
+.center_form {
+  margin-left: 510px;
+}
+
+.center_topology {
+  margin-left: 340px;
+}
+
+.mlef-100 {
+  margin-left: 100px;
+}
+
+.center_container {
+  margin-top: 85px;
+}
+
+.bg-mi-color {
+  background-color: var(--color-quaternary);
 }
 
 /*!
