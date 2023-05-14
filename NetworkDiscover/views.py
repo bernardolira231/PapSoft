@@ -195,11 +195,10 @@ def config_device(request, device_id: int):
         }
         try:
             net_connect = ConnectHandler(**devices)
+            net_connect.config_mode()
             if hostname:
-                net_connect.config_mode()
                 net_connect.send_config_set('hostname ' + hostname)
             if banner_motd:
-                net_connect.config_mode()
                 net_connect.send_command('banner motd #' + banner_motd + '#')
             if ntp_server:
                 net_connect.send_command('ntp server ' + ntp_server)
